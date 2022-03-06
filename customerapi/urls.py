@@ -6,14 +6,19 @@ from django.conf.urls.static import static
 from django.conf import settings
 
 
+
 #URLConf
 urlpatterns=[
-    re_path(r'^customer/?$', views.CustomerAPI),
-    re_path(r'^customer/([0-9]+)/?$', views.CustomerAPI, name='customer'),
 
-    re_path(r'^product/?$', views.ProductAPI),
-    re_path(r'^product/([0-9]+)/?$', views.ProductAPI, name='product'),
+    re_path(r'^restaurant/?$', views.RestaurantAPI.as_view(), name='restaurant'),
+    re_path(r'^restaurant/([0-9]+)/?$', views.RestaurantAPI.as_view(), name='restaurant'),
 
-    re_path(r'^orderdetail/?$', views.OrderDetailAPI),
-    re_path(r'^orderdetail/([0-9]+)/?$', views.OrderDetailAPI, name='orderdetail')
+    re_path(r'^menu/?$', views.MenuAPI.as_view(), name='menu'),
+    re_path(r'^menu/([0-9]+)/?$', views.MenuAPI.as_view(), name='menu'),
+
+    re_path(r'^vote/?$', views.VoteAPI.as_view() , name='vote'),
+    re_path(r'^vote/([0-9]+)/?$', views.VoteAPI.as_view() , name='vote'),
+
+    re_path(r'^vote/result', views.ResultAPI.as_view() , name='result'),
+    
 ]

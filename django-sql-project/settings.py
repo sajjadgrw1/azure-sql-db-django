@@ -48,8 +48,22 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'customerapi'
+    'customerapi',
+    'knox',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        #'rest_framework.authentication.BasicAuthentication',
+        #'rest_framework.authentication.SessionAuthentication',
+        #'rest_framework.authentication.TokenAuthentication',
+        'knox.auth.TokenAuthentication',
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        #'rest_framework.permissions.IsAuthenticated',
+        #'rest_framework.permissions.DjangoModelPermissions',
+    ],
+}
 
 CORS_ORIGIN_ALLOW_ALL = True
 
@@ -63,7 +77,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
 
 
 ROOT_URLCONF = 'django-sql-project.urls'
@@ -100,19 +113,19 @@ DATABASES = {
         'USER': os.getenv("DB_USER"),
         'PASSWORD': os.getenv("DB_PASSWORD"),
         'OPTIONS': {
-	            'driver': 'ODBC Driver 17 for SQL Server',
-	        },
+            'driver': 'ODBC Driver 17 for SQL Server',
+        },
     }
 
-    #To connect Azure SQL DB using MSI (Managed Service Identity)
+    # To connect Azure SQL DB using MSI (Managed Service Identity)
     # {
     #     'ENGINE': 'mssql',
     #     'HOST': 'xyz.database.windows.net',
-    #     'NAME': 'mydb', 
-    #     'PORT': '', 
-    #     'Trusted_Connection': 'no', 
-    #     'OPTIONS': { 
-    #         'driver': 'ODBC Driver 17 for SQL Server', 
+    #     'NAME': 'mydb',
+    #     'PORT': '',
+    #     'Trusted_Connection': 'no',
+    #     'OPTIONS': {
+    #         'driver': 'ODBC Driver 17 for SQL Server',
     #         'extra_params': "Authentication=ActiveDirectoryMsi;Encrypt=yes;TrustServerCertificate=no" }
     # }
 }

@@ -1,104 +1,123 @@
-#View which takes a request and returns a response
+# View which takes a request and returns a response
 
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
-#from django.http import HttpResponse
+from customerapi.models import Restaurant, Menu, Vote
+from customerapi.serializers import RestaurantSerializer, MenuSerializer, VoteSerializer, UserSerializer, RegisterSerializer
+from rest_framework.decorators import api_view, permission_classes
 
-from customerapi.models import Customer, Product, OrderDetail
-from customerapi.serializers import CustomerSerializer,ProductSerializer, OrderDetailSerializer
+from rest_framework import generics, permissions
+from rest_framework.response import Response
+from knox.models import AuthToken
+import json
+from django.db.models import Count
+from django.contrib.auth import login
+
+from rest_framework import permissions
+from rest_framework.authtoken.serializers import AuthTokenSerializer
+from knox.views import LoginView as KnoxLoginView
+
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import DjangoModelPermissions
+
+from rest_framework.views import APIView
+from knox.auth import TokenAuthentication
+
+class LoginAPI(KnoxLoginView):
+    permission_classes = (permissions.AllowAny,)
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        response = super(LoginAPI, self).post(request, format=None)
+        # response['username'] = user.username
+        response.data['email'] = user.email
+        response.data['username'] = user.username
+        response.data['type'] = user.groups.all()[0].name
+        # response.data['type'] = user.username
+        return response
+
+class LogoutAPI(KnoxLoginView):
+    def get(self, request, format=None):
+        # simply delete the token to force a login
+        # request.user.auth_token.delete()
+        return  JsonResponse("logout", safe=False)
 
 
-# Create your views here.
-#Request handler which takes requests and sends the response
+# Register API
+class RegisterAPI(generics.GenericAPIView):
+    serializer_class = RegisterSerializer
 
-@csrf_exempt
-def CustomerAPI (request, id=0):
-    if (request.method=='GET' and int(id) > 0):
-        customer=Customer.objects.filter(CustomerId=id)
-        customer_serializer=CustomerSerializer(customer, many=True)
-        return JsonResponse(customer_serializer.data,safe=False)
-    elif request.method=='GET':   
-        customers = Customer.objects.all()
-        customers_serializer=CustomerSerializer(customers,many=True)
-        return JsonResponse(customers_serializer.data,safe=False)
-    elif request.method=='POST':
-            customer_data=JSONParser().parse(request)
-            customers_serializer=CustomerSerializer(data=customer_data)
-            if customers_serializer.is_valid():
-                customers_serializer.save()
-                return JsonResponse("Record Inserted Successfully",safe=False)
-            return JsonResponse("Oops...something went wrong.",safe=False)
-    elif request.method=='PUT':
-            customer_data=JSONParser().parse(request)
-            customer=Customer.objects.get(CustomerId=customer_data['CustomerId'])
-            customers_serializer=CustomerSerializer(customer,data=customer_data)
-            if customers_serializer.is_valid():
-                customers_serializer.save()
-                return JsonResponse("Record Updated Successfully",safe=False)
-            return JsonResponse("There is some error updating the record", safe=False)
-    elif request.method=='DELETE':
-        customer=Customer.objects.get(CustomerId=id)
-        customer.delete()
-        return JsonResponse("Record Deleted Successfully",safe=False)
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        return Response({
+            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+            "token": AuthToken.objects.create(user)[1]
+        })
 
-@csrf_exempt
-def ProductAPI (request, id=0):
-    if (request.method=='GET' and int(id) > 0):
-        product=Product.objects.filter(ProductId=id)
-        product_serializer=ProductSerializer(product, many=True)
-        return JsonResponse(product_serializer.data,safe=False)
-    elif request.method=='GET':
-        products =  Product.objects.all()
-        products_serializer=ProductSerializer(products,many=True)
-        return JsonResponse(products_serializer.data,safe=False)
-    elif request.method=='POST':
-        product_data=JSONParser().parse(request)
-        products_serializer=ProductSerializer(data=product_data)
-        if products_serializer.is_valid():
-            products_serializer.save()
-            return JsonResponse("Record Inserted Successfully",safe=False)
-        return JsonResponse("Oops...something went wrong.",safe=False)
-    elif request.method=='PUT':
-        product_data=JSONParser().parse(request)
-        product=Product.objects.get(ProductId=product_data['ProductId'])
-        products_serializer=ProductSerializer(product,data=product_data)
-        if products_serializer.is_valid():
-            products_serializer.save()
-            return JsonResponse("Record Updated Successfully",safe=False)
-        return JsonResponse("There is some error updating the record",safe=False)
-    elif request.method=='DELETE':
-        product=Product.objects.get(ProductId=id)
-        product.delete()
-        return JsonResponse("Record Deleted Successfully",safe=False)
 
-@csrf_exempt
-def OrderDetailAPI (request, id=0):
-    if (request.method=='GET' and int(id) > 0):
-        orderDetail=OrderDetail.objects.filter(OrderId=id)
-        orderDetail_serializer=OrderDetailSerializer(orderDetail, many=True)
-        return JsonResponse(orderDetail_serializer.data,safe=False)
-    elif request.method=='GET':
-        orderDetails = OrderDetail.objects.all()
-        orderDetails_serializer=OrderDetailSerializer(orderDetails,many=True)
-        return JsonResponse(orderDetails_serializer.data,safe=False)
-    elif request.method=='POST':
-        orderDetails_data=JSONParser().parse(request)
-        orderDetails_serializer=OrderDetailSerializer(data=orderDetails_data)
-        if orderDetails_serializer.is_valid():
-            orderDetails_serializer.save()
-            return JsonResponse("Record Inserted Successfully",safe=False)
-        return JsonResponse("Oops...something went wrong.",safe=False)
-    elif request.method=='PUT':
-        orderDetails_data=JSONParser().parse(request)
-        orderDetails=OrderDetail.objects.get(OrderId=orderDetails_data['OrderId'])
-        orderDetails_serializer=OrderDetailSerializer(orderDetails,data=orderDetails_data)
-        if orderDetails_serializer.is_valid():
-            orderDetails_serializer.save()
-            return JsonResponse("Record Updated Successfully",safe=False)
-        return JsonResponse("There is some error updating the record",safe=False)
-    elif request.method=='DELETE':
-        orderDetails=OrderDetail.objects.get(OrderId=id)
-        orderDetails.delete()
-        return JsonResponse("Record Deleted Successfully",safe=False)
+class RestaurantAPI(generics.GenericAPIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,DjangoModelPermissions,)
+    queryset = Restaurant.objects.all()
+    serializer_class = RestaurantSerializer
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        restaurant = serializer.save()
+        return Response(RestaurantSerializer(restaurant).data)
+    def get(self, request, *args, **kwargs):
+        return Response(self.get_serializer(Restaurant.objects.all(), many=True).data)
+
+class MenuAPI(generics.GenericAPIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,DjangoModelPermissions,)
+    queryset = Menu.objects.all()
+    serializer_class = MenuSerializer
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        menu = serializer.save()
+        return Response(MenuSerializer(menu).data)
+    def get(self, request, *args, **kwargs):
+        return Response(self.get_serializer(Menu.objects.all(), many=True).data)
+
+class VoteAPI(generics.GenericAPIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,DjangoModelPermissions,)
+    queryset = Vote.objects.all()
+    serializer_class = VoteSerializer
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        vote = serializer.save()
+        return Response(VoteSerializer(vote).data)
+    def get(self, request, *args, **kwargs):
+        return Response(self.get_serializer(Vote.objects.all(), many=True).data)
+
+class ResultAPI(generics.GenericAPIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,DjangoModelPermissions,)
+    queryset = Vote.objects.all()
+    def get(self, request, *args, **kwargs):
+        #votes = Vote.objects.all()
+        # votes_dict = {}
+        # for vote in votes:
+        #     if vote.menu.restaurant.id in votes_dict:
+        #         votes_dict[vote.menu.restaurant.id] += 1
+        #     else:
+        #         votes_dict[vote.menu.restaurant.id] = 1
+        # votes_list = []
+        # for key, value in votes_dict.items():
+        #     votes_list.append({'restaurant_id': key, 'votes': value})
+        
+        ress = Vote.objects.values('voteMenuId').annotate(vote_count=Count('voteMenuId')).order_by('-vote_count')[:3]
+        for res in ress:
+            print(res)
+        
+        return Response(ress)

@@ -17,9 +17,18 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import include, path
+from customerapi.views import LoginAPI, RegisterAPI, LogoutAPI#URl patterns
 
-#URl patterns
+from knox import views as knox_views
+from django.urls import path
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('customerapi/', include('customerapi.urls')),
+    path('api/', include('customerapi.urls')),
+    
+    path('api/register/', RegisterAPI.as_view(), name='register'),
+    path('api/login/', LoginAPI.as_view(), name='login'),
+    path('api/logout/', LogoutAPI.as_view(), name='logout'),
+    path('api/logoutall/', knox_views.LogoutAllView.as_view(), name='logoutall'),
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

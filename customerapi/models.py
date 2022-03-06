@@ -2,29 +2,38 @@
 
 from math import fabs
 from django.db import models
+from django.contrib.auth.models import User
+from rest_framework import serializers
 
-# Create your models here.
 
-class Customer(models.Model):
-    CustomerId = models.AutoField(primary_key=True)
-    CustomerName = models.CharField(max_length=500)
-    
-    def __str__(self):
-        return self.CustomerName
-
-class Product(models.Model):
-    ProductId = models.AutoField(primary_key=True)
-    ProductName = models.CharField(max_length=500)
+class Restaurant(models.Model):
+    restaurantId = models.AutoField(primary_key=True)
+    restaurantName = models.CharField(max_length=500)
+    restaurantAddress = models.CharField(max_length=500)
+    userId = models.IntegerField(blank=False)
 
     def __str__(self):
-        return self.ProductName
+        return f"Restaurant #{self.restaurantId}"
 
 
-class OrderDetail(models.Model):
-    OrderId = models.AutoField(primary_key=True)
-    CustomerId = models.IntegerField(blank=False)
-    ProductId = models.IntegerField(blank=False)
-    OrderDate = models.DateField()
+class Menu(models.Model):
+    menutId = models.AutoField(primary_key=True)
+    menuName = models.CharField(max_length=500)
+    menuDescription = models.CharField(max_length=500)
+    restaurantId = models.IntegerField(blank=False)
+    menuDate = models.DateField()
 
     def __str__(self):
-        return f"Order #{self.OrderId}"
+        return f"Menu #{self.menutId}"
+
+class Vote(models.Model):
+    voteId = models.AutoField(primary_key=True)
+    voteMenuId = models.IntegerField(blank=False)
+    userId = models.IntegerField(blank=False)
+    voteMenuDate = models.DateField()
+
+    def __str__(self):
+        return f"Vote #{self.voteId}"
+
+
+
