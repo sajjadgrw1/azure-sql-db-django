@@ -13,6 +13,7 @@ class MenuSerializer(serializers.ModelSerializer):
         model=Menu
         fields=('menutId','menuName','menuDescription','restaurantId','menuDate')
 
+
 class VoteSerializer(serializers.ModelSerializer):
     class Meta:
         model=Vote

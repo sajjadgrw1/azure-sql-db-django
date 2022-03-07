@@ -26,6 +26,8 @@ from rest_framework.views import APIView
 from knox.auth import TokenAuthentication
 
 from datetime import datetime
+
+from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 class LoginAPI(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
     def post(self, request, format=None):
@@ -76,6 +78,7 @@ class RestaurantAPI(generics.GenericAPIView):
         return Response(self.get_serializer(Restaurant.objects.all(), many=True).data)
 
 class MenuAPI(generics.GenericAPIView):
+    
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,DjangoModelPermissions,)
     queryset = Menu.objects.all()
@@ -89,19 +92,30 @@ class MenuAPI(generics.GenericAPIView):
         return Response(self.get_serializer(Menu.objects.all(), many=True).data)
 
 class VoteAPI(generics.GenericAPIView):
+    render_classes = (JSONRenderer,TemplateHTMLRenderer,)
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,DjangoModelPermissions,)
     queryset = Vote.objects.all()
     serializer_class = VoteSerializer
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
         
-        # delete user votes for today
-        Vote.objects.filter(voteMenuDate=datetime.today().strftime('%Y-%m-%d') , userId=request.data['userId']).delete()
+        if request.accepted_media_type == 'application/json;version=1.0':
+            # delete user votes for today
+            Vote.objects.filter(voteMenuDate=datetime.today().strftime('%Y-%m-%d') , userId=request.data['userId']).delete()
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            menu = serializer.save()
+            return Response(VoteSerializer(menu).data)
+        elif request.accepted_media_type == 'application/json;version=1.1':
+            for vote in request.data:
+                # delete user votes for today
+                Vote.objects.filter(voteMenuDate=datetime.today().strftime('%Y-%m-%d') , userId=vote['userId']).delete()
+                serializer = self.get_serializer(data=vote)
+                serializer.is_valid(raise_exception=True)
+                menu = serializer.save()
+            return Response({'message': 'Votes added based on version passed in header'})
+
         
-        vote = serializer.save()
-        return Response(VoteSerializer(vote).data)
     def get(self, request, *args, **kwargs):
         return Response(self.get_serializer(Vote.objects.all(), many=True).data)
 
