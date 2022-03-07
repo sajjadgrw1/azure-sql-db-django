@@ -1,9 +1,9 @@
-Django==4.0.2
-django_rest_knox==4.2.0
-djangorestframework==3.13.1
-knox==0.1.14
-python-dotenv==0.19.2
-mssql-django==1.1.2
-pyodbc==4.0.32
-django-cors-headers==3.11.0
+Django
+django_rest_knox
+djangorestframework
+knox
+python-dotenv
+mssql-django
+pyodbc
+django-cors-headers
 

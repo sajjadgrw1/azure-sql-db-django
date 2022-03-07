@@ -25,6 +25,7 @@ from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.views import APIView
 from knox.auth import TokenAuthentication
 
+from datetime import datetime
 class LoginAPI(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
     def post(self, request, format=None):
@@ -95,6 +96,10 @@ class VoteAPI(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        
+        # delete user votes for today
+        Vote.objects.filter(voteMenuDate=datetime.today().strftime('%Y-%m-%d') , userId=request.data['userId']).delete()
+        
         vote = serializer.save()
         return Response(VoteSerializer(vote).data)
     def get(self, request, *args, **kwargs):
@@ -105,9 +110,7 @@ class ResultAPI(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,DjangoModelPermissions,)
     queryset = Vote.objects.all()
     def get(self, request, *args, **kwargs):
-
-        ress = Vote.objects.values('voteMenuId').annotate(vote_count=Count('voteMenuId')).order_by('-vote_count')[:3]
-        for res in ress:
-            print(res)
-        
+        # todayRecords = Vote.objects.filter(voteMenuDate=datetime.today().strftime('%Y-%m-%d'))
+        todayRecords = Vote.objects.filter(voteMenuDate=datetime.today().strftime('%Y-%m-%d'))
+        ress = todayRecords.values('voteMenuId').annotate(vote_count=Count('voteMenuId') ).order_by('-vote_count')[:3]
         return Response(ress)
