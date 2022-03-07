@@ -105,17 +105,7 @@ class ResultAPI(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,DjangoModelPermissions,)
     queryset = Vote.objects.all()
     def get(self, request, *args, **kwargs):
-        #votes = Vote.objects.all()
-        # votes_dict = {}
-        # for vote in votes:
-        #     if vote.menu.restaurant.id in votes_dict:
-        #         votes_dict[vote.menu.restaurant.id] += 1
-        #     else:
-        #         votes_dict[vote.menu.restaurant.id] = 1
-        # votes_list = []
-        # for key, value in votes_dict.items():
-        #     votes_list.append({'restaurant_id': key, 'votes': value})
-        
+
         ress = Vote.objects.values('voteMenuId').annotate(vote_count=Count('voteMenuId')).order_by('-vote_count')[:3]
         for res in ress:
             print(res)
