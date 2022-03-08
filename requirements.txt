@@ -6,4 +6,5 @@ python-dotenv
 mssql-django
 pyodbc
 django-cors-headers
+mysqlclient
 

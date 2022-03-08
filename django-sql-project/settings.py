@@ -53,7 +53,7 @@ INSTALLED_APPS = [
 ]
 
 REST_FRAMEWORK = {
-    
+    #'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         #'rest_framework.authentication.BasicAuthentication',
         #'rest_framework.authentication.SessionAuthentication',
@@ -106,29 +106,29 @@ WSGI_APPLICATION = 'django-sql-project.wsgi.application'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'mssql',
-        'NAME': os.getenv("DB_NAME"),
-        'HOST': os.getenv("DB_SERVER"),
-        'PORT': '1433',
-        'USER': os.getenv("DB_USER"),
-        'PASSWORD': os.getenv("DB_PASSWORD"),
-        'OPTIONS': {
-            'driver': 'ODBC Driver 17 for SQL Server',
-        },
-    }
-
-    # To connect Azure SQL DB using MSI (Managed Service Identity)
-    # {
+    # 'default': {
     #     'ENGINE': 'mssql',
-    #     'HOST': 'xyz.database.windows.net',
-    #     'NAME': 'mydb',
-    #     'PORT': '',
-    #     'Trusted_Connection': 'no',
+    #     'NAME': os.getenv("DB_NAME"),
+    #     'HOST': os.getenv("DB_SERVER"),
+    #     'PORT': '1433',
+    #     'USER': os.getenv("DB_USER"),
+    #     'PASSWORD': os.getenv("DB_PASSWORD"),
     #     'OPTIONS': {
     #         'driver': 'ODBC Driver 17 for SQL Server',
-    #         'extra_params': "Authentication=ActiveDirectoryMsi;Encrypt=yes;TrustServerCertificate=no" }
+    #     },
     # }
+
+    #To connect Azure SQL DB using MSI (Managed Service Identity)
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': 'localhost',
+        'NAME': 'menuvoting',
+        'PORT': '3306',
+        'USER': 'root',
+        'PASSWORD': 'Y5<`r53L8W;}mw\8',
+        'Trusted_Connection': 'no',
+        
+    }
 }
 
 # Password validation
