@@ -7,4 +7,5 @@ mssql-django
 pyodbc
 django-cors-headers
 mysqlclient
+django-mysql
 
